@@ -151,22 +151,3 @@ cd backend
 python manage.py test
 ```
 14 tests covering auth flows (register/login, first-user admin setup, and protected endpoint access), filesystem CRUD (create directory/file), recursive soft delete, recycle bin, restore, search, per-user isolation, and access control for private, read-only, and public nodes, including non-owner permission restrictions.
-
-## Design notes / decisions
-- The filesystem is modeled in the database rather than on disk, which keeps it
-  multi-tenant, sandboxed per user, and makes search/recycle-bin trivial to
-  implement with queries.
-- Soft-delete uses `is_deleted` + `deleted_at` so deletion is recursive and
-  fully reversible; the recycle bin only shows top-level deleted nodes to avoid
-  clutter, and restore/purge cascade.
-- A single `log_action` helper centralizes auditing so behavior stays
-  consistent across views.
-- **Access control** is split into two questions answered separately: "what can
-  I *see*" (the queryset) and "what can I *do*" (object-level checks in
-  `update`/`destroy`). This keeps the admin sudo override and the read-only vs.
-  public distinction explicit and easy to test, rather than tangled into one
-  filter. Deleting/re-sharing is deliberately stricter than editing so a public
-  file can't be deleted by a non-owner.
-- **Usage stats** for the admin dashboard are computed with database
-  annotations (`Count` + `Sum(Length(content))`) in one query, instead of
-  looping per user in Python.
