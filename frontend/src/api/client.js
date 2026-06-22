@@ -16,7 +16,11 @@ export function getAccessToken() {
   return accessToken;
 }
 
-const api = axios.create({ baseURL: "/api" });
+const api = axios.create({ 
+  baseURL: import.meta.env.VITE_API_URL 
+    ? `${import.meta.env.VITE_API_URL}/api` 
+    : "/api" 
+});
 
 api.interceptors.request.use((config) => {
   if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`;
